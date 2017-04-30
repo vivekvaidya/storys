@@ -9,12 +9,15 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +26,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -30,14 +35,18 @@ import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
+import java.util.Locale;
 
 import static android.app.Activity.RESULT_OK;
+import static android.content.Context.LOCATION_SERVICE;
 
 public class CameraActivity extends Fragment {
 
     private StorageReference mStorageRef;
+    private DatabaseReference mDatabaseRef;
     private ImageView mImageView;
     private Button mCaptureImage;
+    private String pictureState;
     private Button mShareImage;
     private static final int OPEN_CAMERA = 1;
     private static final int COMPRESS_SIZE = 100;
@@ -63,6 +72,7 @@ public class CameraActivity extends Fragment {
 
         // Gets reference to storage location on Firebase
         mStorageRef = FirebaseStorage.getInstance().getReference();
+        mDatabaseRef = FirebaseDatabase.getInstance().getReference();
         mCaptureImage = (Button) view.findViewById(R.id.button2);
         mImageView = (ImageView) view.findViewById(R.id.imageView2);
         mShareImage = (Button) view.findViewById(R.id.button);
@@ -104,11 +114,47 @@ public class CameraActivity extends Fragment {
                     filePath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @SuppressWarnings("VisibleForTests")
                         @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        public void onSuccess(final UploadTask.TaskSnapshot taskSnapshot) {
                             //do the geolocation stuff
                             //write to firebase database
                             //send toast message
                             //send user back to main screen
+                            locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
+                            geocoder = new Geocoder(context, Locale.getDefault());
+                            locationListener = new LocationListener() {
+                                @Override
+                                public void onLocationChanged(Location location) {
+                                    try {
+                                        addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                                        pictureState = addressList.get(0).getAdminArea();
+                                        Uri pictureURL = taskSnapshot.getDownloadUrl();
+                                        mDatabaseRef.child(pictureState).child("URI").setValue(pictureURL.toString()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+
+                                            }
+                                        });
+                                    } catch (Exception ex) {
+                                        Log.d("hello", "hi");
+                                    }
+                                }
+
+                                @Override
+                                public void onStatusChanged(String provider, int status, Bundle extras) {
+
+                                }
+
+                                @Override
+                                public void onProviderEnabled(String provider) {
+
+                                }
+
+                                @Override
+                                public void onProviderDisabled(String provider) {
+
+                                }
+                            };
+                            locationManager.requestLocationUpdates("gps", 5000, 0, locationListener);
                         }
                     });
                 }
@@ -119,8 +165,9 @@ public class CameraActivity extends Fragment {
     /**
      * Helper method that returns the Uri of a Bitmap passed in as a parameter
      * Sourced from the one and only - Stackoverflow
+     *
      * @param inContext - application context
-     * @param inImage - image returned from the camera activity under the data Intent
+     * @param inImage   - image returned from the camera activity under the data Intent
      * @return the Uri of the Bitmap.
      */
     public Uri getImageUri(Context inContext, Bitmap inImage) {
@@ -130,6 +177,5 @@ public class CameraActivity extends Fragment {
                 insertImage(inContext.getContentResolver(), inImage, "Title", null);
         return Uri.parse(path);
     }
-
 }
 
