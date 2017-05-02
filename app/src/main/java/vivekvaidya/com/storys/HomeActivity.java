@@ -76,7 +76,7 @@ public class HomeActivity extends Fragment {
         return view;
     }
 
-    private void showData(DataSnapshot dataSnapshot, View view) {
+    public void showData(DataSnapshot dataSnapshot, View view) {
         DataSnapshot states = dataSnapshot.child("states");
         LinearLayout layout = (LinearLayout) view.findViewById(R.id.container);
 
