@@ -44,8 +44,6 @@ import java.util.regex.Pattern;
 public class HomeActivity extends Fragment {
 
     private DatabaseReference mDatabaseRef;
-    private ImageButton mImageButton;
-    private ListView mListView;
 
     public static HomeActivity newInstance() {
         HomeActivity fragment = new HomeActivity();
@@ -94,18 +92,17 @@ public class HomeActivity extends Fragment {
             TextView text = new TextView(getContext().getApplicationContext());
             text.setText(state);
             text.setTextColor(Color.rgb(255,192,0));
-            layout.addView(text);
+            ll.addView(text);
             for (DataSnapshot ds1 : ds.getChildren()) {
                 String url =  (String) ds1.getValue();
                 ImageView image = new ImageView(getContext().getApplicationContext());
                 image.setLayoutParams(new android.view.ViewGroup.LayoutParams(700,700));
-                image.setMaxHeight(700);
-                image.setMaxWidth(700);
+                image.setMaxHeight(250);
+                image.setMaxWidth(250);
                 Picasso.with(getContext().getApplicationContext()).load(url).into(image);
                 ll.addView(image);
             }
         }
-
-       layout.addView(sv);
+        layout.addView(sv);
     }
 }
