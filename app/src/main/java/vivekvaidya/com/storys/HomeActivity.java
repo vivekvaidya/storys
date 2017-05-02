@@ -4,6 +4,7 @@ package vivekvaidya.com.storys;
  * Created by vivekvaidya on 4/25/17.
  */
 
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.LocationListener;
@@ -17,10 +18,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -76,17 +80,32 @@ public class HomeActivity extends Fragment {
 
     private void showData(DataSnapshot dataSnapshot, View view) {
         DataSnapshot states = dataSnapshot.child("states");
-        LinearLayout layout = (LinearLayout)view.findViewById(R.id.container);
+        LinearLayout layout = (LinearLayout) view.findViewById(R.id.container);
+
+        HorizontalScrollView sv = new HorizontalScrollView(getContext().getApplicationContext());
+        sv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+        LinearLayout ll = new LinearLayout(getContext().getApplicationContext());
+        ll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        ll.setOrientation(LinearLayout.HORIZONTAL);
+        sv.addView(ll);
+
         for(DataSnapshot ds : states.getChildren()) {
+            String state = ds.getKey();
+            TextView text = new TextView(getContext().getApplicationContext());
+            text.setText(state);
+            text.setTextColor(Color.rgb(255,192,0));
+            layout.addView(text);
             for (DataSnapshot ds1 : ds.getChildren()) {
                 String url =  (String) ds1.getValue();
                 ImageView image = new ImageView(getContext().getApplicationContext());
-                image.setLayoutParams(new android.view.ViewGroup.LayoutParams(80,60));
-                image.setMaxHeight(40);
-                image.setMaxWidth(40);
+                image.setLayoutParams(new android.view.ViewGroup.LayoutParams(700,700));
+                image.setMaxHeight(700);
+                image.setMaxWidth(700);
                 Picasso.with(getContext().getApplicationContext()).load(url).into(image);
-                layout.addView(image);
+                ll.addView(image);
             }
         }
+
+       layout.addView(sv);
     }
 }
