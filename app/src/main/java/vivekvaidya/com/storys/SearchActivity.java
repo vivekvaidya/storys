@@ -101,15 +101,18 @@ public class SearchActivity extends Fragment {
         if (poop.contains(editText.getText().toString())) {
 
             for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                for(DataSnapshot ds1 : ds.getChildren()) {
-                    String url = (String) ds1.getValue();
-                    ImageView image = new ImageView(getContext().getApplicationContext());
-                    image.setLayoutParams(new android.view.ViewGroup.LayoutParams(700,700));
-                    image.setMaxHeight(300);
-                    image.setMaxWidth(300);
-                    image.setPadding(10,10,10,0);
-                    Picasso.with(getContext().getApplicationContext()).load(url).into(image);
-                    ll.addView(image);
+                if(ds.getKey().compareTo(editText.getText().toString()) == 0) {
+
+                    for (DataSnapshot ds1 : ds.getChildren()) {
+                        String url = (String) ds1.getValue();
+                        ImageView image = new ImageView(getContext().getApplicationContext());
+                        image.setLayoutParams(new android.view.ViewGroup.LayoutParams(700, 700));
+                        image.setMaxHeight(300);
+                        image.setMaxWidth(300);
+                        image.setPadding(10, 10, 10, 0);
+                        Picasso.with(getContext().getApplicationContext()).load(url).into(image);
+                        ll.addView(image);
+                    }
                 }
             }
             layout.addView(sv);

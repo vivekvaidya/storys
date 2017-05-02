@@ -104,7 +104,7 @@ public class HomeActivity extends Fragment {
             ll.addView(text);
 
             for (DataSnapshot ds1 : ds.getChildren()) {
-                String url =  (String) ds1.getValue();
+                String url = (String) ds1.getValue();
                 ImageView image = new ImageView(getContext().getApplicationContext());
                 image.setLayoutParams(new android.view.ViewGroup.LayoutParams(700,700));
                 image.setMaxHeight(300);
