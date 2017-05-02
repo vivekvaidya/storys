@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
@@ -72,7 +73,7 @@ public class CameraActivity extends Fragment {
 
         // Gets reference to storage location on Firebase
         mStorageRef = FirebaseStorage.getInstance().getReference();
-        mDatabaseRef = FirebaseDatabase.getInstance().getReference();
+        mDatabaseRef = FirebaseDatabase.getInstance().getReference("states");
         mCaptureImage = (Button) view.findViewById(R.id.button2);
         mImageView = (ImageView) view.findViewById(R.id.imageView2);
         mShareImage = (Button) view.findViewById(R.id.button);
@@ -115,10 +116,6 @@ public class CameraActivity extends Fragment {
                         @SuppressWarnings("VisibleForTests")
                         @Override
                         public void onSuccess(final UploadTask.TaskSnapshot taskSnapshot) {
-                            //do the geolocation stuff
-                            //write to firebase database
-                            //send toast message
-                            //send user back to main screen
                             locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
                             geocoder = new Geocoder(context, Locale.getDefault());
                             locationListener = new LocationListener() {
@@ -128,14 +125,14 @@ public class CameraActivity extends Fragment {
                                         addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
                                         pictureState = addressList.get(0).getAdminArea();
                                         Uri pictureURL = taskSnapshot.getDownloadUrl();
-                                        mDatabaseRef.child(pictureState).child("URI").setValue(pictureURL.toString()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        mDatabaseRef.child(pictureState).child(pictureURL.getLastPathSegment()).setValue(pictureURL.toString()).addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void aVoid) {
-
+                                                Toast.makeText(getActivity().getApplicationContext(), "Your photo was shared!", Toast.LENGTH_LONG).show();
                                             }
                                         });
                                     } catch (Exception ex) {
-                                        Log.d("hello", "hi");
+                                        ex.printStackTrace();
                                     }
                                 }
 

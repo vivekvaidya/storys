@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.container, HomeActivity.newInstance());
+        transaction.replace(R.id.container, CameraActivity.newInstance());
         transaction.commit();
     }
 }
