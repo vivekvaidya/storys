@@ -80,28 +80,45 @@ public class HomeActivity extends Fragment {
         DataSnapshot states = dataSnapshot.child("states");
         LinearLayout layout = (LinearLayout) view.findViewById(R.id.container);
 
-        HorizontalScrollView sv = new HorizontalScrollView(getContext().getApplicationContext());
+        ScrollView sv = new ScrollView(getContext().getApplicationContext());
         sv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
         LinearLayout ll = new LinearLayout(getContext().getApplicationContext());
         ll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        ll.setOrientation(LinearLayout.HORIZONTAL);
+        ll.setOrientation(LinearLayout.VERTICAL);
+
+
         sv.addView(ll);
 
         for(DataSnapshot ds : states.getChildren()) {
+
+            LinearLayout mm = new LinearLayout(getContext().getApplicationContext());
+            mm.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            mm.setOrientation(LinearLayout.HORIZONTAL);
+
             String state = ds.getKey();
             TextView text = new TextView(getContext().getApplicationContext());
-            text.setText(state);
-            text.setTextColor(Color.rgb(255,192,0));
+            text.setText(state + " > ");
+            text.setPadding(20, 40, 0, 0);
+            text.setTextAppearance(getContext().getApplicationContext(), android.R.style.TextAppearance_Large);
+            text.setTextColor(Color.rgb(0,0,0));
             ll.addView(text);
+
             for (DataSnapshot ds1 : ds.getChildren()) {
                 String url =  (String) ds1.getValue();
                 ImageView image = new ImageView(getContext().getApplicationContext());
                 image.setLayoutParams(new android.view.ViewGroup.LayoutParams(700,700));
-                image.setMaxHeight(250);
-                image.setMaxWidth(250);
+                image.setMaxHeight(300);
+                image.setMaxWidth(300);
+                image.setPadding(10,10,10,0);
                 Picasso.with(getContext().getApplicationContext()).load(url).into(image);
-                ll.addView(image);
+                mm.addView(image);
             }
+
+            HorizontalScrollView sv_1 = new HorizontalScrollView(getContext().getApplicationContext());
+            sv_1.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+
+            sv_1.addView(mm);
+            ll.addView(sv_1);
         }
         layout.addView(sv);
     }
