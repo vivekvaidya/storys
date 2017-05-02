@@ -89,10 +89,10 @@ public class SearchActivity extends Fragment {
 
         LinearLayout layout = (LinearLayout) view.findViewById(R.id.kek);
 
-        HorizontalScrollView sv = new HorizontalScrollView(getContext().getApplicationContext());
+        HorizontalScrollView sv = new HorizontalScrollView(view.getContext().getApplicationContext());
         sv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
 
-        LinearLayout ll = new LinearLayout(getContext().getApplicationContext());
+        LinearLayout ll = new LinearLayout(view.getContext().getApplicationContext());
         ll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         ll.setOrientation(LinearLayout.HORIZONTAL);
 
@@ -105,12 +105,12 @@ public class SearchActivity extends Fragment {
 
                     for (DataSnapshot ds1 : ds.getChildren()) {
                         String url = (String) ds1.getValue();
-                        ImageView image = new ImageView(getContext().getApplicationContext());
+                        ImageView image = new ImageView(view.getContext().getApplicationContext());
                         image.setLayoutParams(new android.view.ViewGroup.LayoutParams(700, 700));
                         image.setMaxHeight(300);
                         image.setMaxWidth(300);
                         image.setPadding(10, 10, 10, 0);
-                        Picasso.with(getContext().getApplicationContext()).load(url).into(image);
+                        Picasso.with(view.getContext().getApplicationContext()).load(url).into(image);
                         ll.addView(image);
                     }
                 }

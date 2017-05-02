@@ -6,6 +6,7 @@ package vivekvaidya.com.storys;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Geocoder;
@@ -16,6 +17,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
@@ -110,7 +112,7 @@ public class CameraActivity extends Fragment {
 
             mShareImage.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View view1) {
+                public void onClick(final View view1) {
                     StorageReference filePath = mStorageRef.child(uri.getLastPathSegment());
                     filePath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @SuppressWarnings("VisibleForTests")
@@ -128,7 +130,7 @@ public class CameraActivity extends Fragment {
                                         mDatabaseRef.child(pictureState).child(pictureURL.getLastPathSegment()).setValue(pictureURL.toString()).addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void aVoid) {
-                                                Toast.makeText(getActivity().getApplicationContext(), "Your photo was shared!", Toast.LENGTH_LONG).show();
+                                                Toast.makeText(view1.getContext().getApplicationContext(), "Your photo was shared!", Toast.LENGTH_LONG).show();
                                             }
                                         });
                                     } catch (Exception ex) {
@@ -151,6 +153,16 @@ public class CameraActivity extends Fragment {
 
                                 }
                             };
+                            if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                // TODO: Consider calling
+                                //    ActivityCompat#requestPermissions
+                                // here to request the missing permissions, and then overriding
+                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                //                                          int[] grantResults)
+                                // to handle the case where the user grants the permission. See the documentation
+                                // for ActivityCompat#requestPermissions for more details.
+                                return;
+                            }
                             locationManager.requestLocationUpdates("gps", 5000, 0, locationListener);
                         }
                     });

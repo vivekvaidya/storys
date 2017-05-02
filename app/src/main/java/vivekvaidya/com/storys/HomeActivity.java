@@ -80,9 +80,9 @@ public class HomeActivity extends Fragment {
         DataSnapshot states = dataSnapshot.child("states");
         LinearLayout layout = (LinearLayout) view.findViewById(R.id.container);
 
-        ScrollView sv = new ScrollView(getContext().getApplicationContext());
+        ScrollView sv = new ScrollView(view.getContext().getApplicationContext());
         sv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-        LinearLayout ll = new LinearLayout(getContext().getApplicationContext());
+        LinearLayout ll = new LinearLayout(view.getContext().getApplicationContext());
         ll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         ll.setOrientation(LinearLayout.VERTICAL);
 
@@ -91,7 +91,7 @@ public class HomeActivity extends Fragment {
 
         for(DataSnapshot ds : states.getChildren()) {
 
-            LinearLayout mm = new LinearLayout(getContext().getApplicationContext());
+            LinearLayout mm = new LinearLayout(view.getContext().getApplicationContext());
             mm.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             mm.setOrientation(LinearLayout.HORIZONTAL);
 
@@ -105,16 +105,16 @@ public class HomeActivity extends Fragment {
 
             for (DataSnapshot ds1 : ds.getChildren()) {
                 String url = (String) ds1.getValue();
-                ImageView image = new ImageView(getContext().getApplicationContext());
+                ImageView image = new ImageView(view.getContext().getApplicationContext());
                 image.setLayoutParams(new android.view.ViewGroup.LayoutParams(700,700));
                 image.setMaxHeight(300);
                 image.setMaxWidth(300);
                 image.setPadding(10,10,10,0);
-                Picasso.with(getContext().getApplicationContext()).load(url).into(image);
+                Picasso.with(view.getContext().getApplicationContext()).load(url).into(image);
                 mm.addView(image);
             }
 
-            HorizontalScrollView sv_1 = new HorizontalScrollView(getContext().getApplicationContext());
+            HorizontalScrollView sv_1 = new HorizontalScrollView(view.getContext().getApplicationContext());
             sv_1.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
 
             sv_1.addView(mm);
