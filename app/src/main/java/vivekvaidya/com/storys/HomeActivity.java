@@ -15,6 +15,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -22,15 +24,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class HomeActivity extends Fragment {
-
-    private DatabaseReference mDatabaseRef;
 
     public static HomeActivity newInstance() {
         HomeActivity fragment = new HomeActivity();
@@ -46,7 +40,7 @@ public class HomeActivity extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.home_activity, container, false);
-        mDatabaseRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference mDatabaseRef = FirebaseDatabase.getInstance().getReference();
         mDatabaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -55,6 +49,8 @@ public class HomeActivity extends Fragment {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(getActivity().getApplicationContext(),
+                        "Trouble reading from the database.", Toast.LENGTH_LONG).show();
 
             }
         });

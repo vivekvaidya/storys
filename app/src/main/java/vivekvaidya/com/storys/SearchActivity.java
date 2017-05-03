@@ -1,6 +1,5 @@
 package vivekvaidya.com.storys;
 
-import android.graphics.Color;
 import android.support.v4.app.Fragment;
 
 /**
@@ -8,9 +7,6 @@ import android.support.v4.app.Fragment;
  */
 
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,9 +16,6 @@ import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.ScrollView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
@@ -36,11 +29,15 @@ import java.util.ArrayList;
 
 public class SearchActivity extends Fragment {
 
+    // Setting up the required variables
     private DatabaseReference mDatabaseRef;
-    private ArrayList<String> poop = new ArrayList<>();
-    private EditText editText;
-    private Button mButton;
+    private ArrayList<String> mKeys = new ArrayList<>();
+    private EditText mEditText;
 
+    /**
+     * Sets up a new SearchActiviy and returns it for use as a fragment.
+     * @return SearchActivity
+     */
     public static SearchActivity newInstance() {
         SearchActivity fragment = new SearchActivity();
         return fragment;
@@ -54,17 +51,24 @@ public class SearchActivity extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        // view is final because it's accessed from an inner class
         final View view = inflater.inflate(R.layout.search_activity, container, false);
         mDatabaseRef = FirebaseDatabase.getInstance().getReference("states");
-        editText = (EditText) view.findViewById(R.id.meme);
+        mEditText = (EditText) view.findViewById(R.id.meme); //TODO pls fix
+        Button mButton = (Button) view.findViewById(R.id.search);
 
-        mButton = (Button) view.findViewById(R.id.search);
-
+        // Takes in the input from EditText onClick
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                InputMethodManager mgr = (InputMethodManager) getActivity().getSystemService(getContext().getApplicationContext().INPUT_METHOD_SERVICE);
-                mgr.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+
+                // Automatically hides the keyboard on buttonClick - EXTRA POINTS????
+                InputMethodManager mgr = (InputMethodManager) getActivity().
+                        getSystemService(getContext().getApplicationContext().INPUT_METHOD_SERVICE);
+                mgr.hideSoftInputFromWindow(mEditText.getWindowToken(), 0);
+
+                // Calls showData() when data is changed/updated on the realtime database
                 mDatabaseRef.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -73,52 +77,72 @@ public class SearchActivity extends Fragment {
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-
+                        Toast.makeText(getActivity().getApplicationContext(),
+                                "Trouble reading from database.", Toast.LENGTH_LONG).show();
                     }
                 });
             }
         });
-
         return view;
     }
 
+    /**
+     * Helper method that programmatically sets up masterLayouts and lays out elements pulled
+     * from the realtime database.
+     *
+     * @param dataSnapshot
+     * @param view
+     */
     public void showData(DataSnapshot dataSnapshot, View view) {
-        for(DataSnapshot s : dataSnapshot.getChildren()) {
-            poop.add(s.getKey());
+
+        // Populates Arraylist mKeys with the keys from dataSnapshot
+        for (DataSnapshot entireDB : dataSnapshot.getChildren()) {
+            mKeys.add(entireDB.getKey());
         }
 
-        LinearLayout layout = (LinearLayout) view.findViewById(R.id.kek);
+        // Master linear layout that contains child elements
+        LinearLayout masterLayout = (LinearLayout) view.findViewById(R.id.kek); //TODO fix pls
 
-        HorizontalScrollView sv = new HorizontalScrollView(view.getContext().getApplicationContext());
-        sv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+        // HorizontalScrollView for images corresponding to each state.  
+        HorizontalScrollView stateImages = new HorizontalScrollView
+                (view.getContext().getApplicationContext());
+        stateImages.setLayoutParams(new LinearLayout.LayoutParams
+                (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
 
-        LinearLayout ll = new LinearLayout(view.getContext().getApplicationContext());
-        ll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        ll.setOrientation(LinearLayout.HORIZONTAL);
+        // Linear layout that hosts multiple images.  
+        LinearLayout multipleImages = new LinearLayout(view.getContext().getApplicationContext());
+        multipleImages.setLayoutParams(new LinearLayout.LayoutParams
+                (LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        multipleImages.setOrientation(LinearLayout.HORIZONTAL);
 
-        sv.addView(ll);
+        // Add multipleImages to the ScrollView.
+        stateImages.addView(multipleImages);
 
-        if (poop.contains(editText.getText().toString())) {
+        if (mKeys.contains(mEditText.getText().toString())) {
 
-            for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                if(ds.getKey().compareTo(editText.getText().toString()) == 0) {
+            // Two loops to go through the entire dataSnapshot and then individual paths.
+            for (DataSnapshot entireDB : dataSnapshot.getChildren()) {
 
-                    for (DataSnapshot ds1 : ds.getChildren()) {
-                        String url = (String) ds1.getValue();
-                        ImageView image = new ImageView(view.getContext().getApplicationContext());
-                        image.setLayoutParams(new android.view.ViewGroup.LayoutParams(700, 700));
-                        image.setMaxHeight(300);
-                        image.setMaxWidth(300);
-                        image.setPadding(10, 10, 10, 0);
-                        Picasso.with(view.getContext().getApplicationContext()).load(url).into(image);
-                        ll.addView(image);
+                // Check if the search term matches the current key
+                if (entireDB.getKey().compareTo(mEditText.getText().toString()) == 0) {
+                    for (DataSnapshot individualPaths : entireDB.getChildren()) {
+                        String imgUri = (String) individualPaths.getValue();
+
+                        // Dynamically generate imageViews to load the pulled images into.
+                        ImageView img = new ImageView(view.getContext().getApplicationContext());
+                        img.setLayoutParams(new android.view.ViewGroup.LayoutParams(700, 700));
+                        img.setMaxHeight(300);
+                        img.setMaxWidth(300);
+                        img.setPadding(10, 10, 10, 0);
+                        Picasso.with(getContext().getApplicationContext()).load(imgUri).into(img);
+                        multipleImages.addView(img);
                     }
                 }
             }
-            layout.addView(sv);
-
+            masterLayout.addView(stateImages);
         } else {
-                Toast.makeText(getActivity().getApplicationContext(), "No pictures were taken in this state.", Toast.LENGTH_LONG).show();
-            }
+            Toast.makeText(getActivity().getApplicationContext(),
+                    "No pictures were taken in this state.", Toast.LENGTH_LONG).show();
         }
+    }
 }
