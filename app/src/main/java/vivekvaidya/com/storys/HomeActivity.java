@@ -5,34 +5,21 @@ package vivekvaidya.com.storys;
  */
 
 import android.graphics.Color;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.media.Image;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
-
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
@@ -86,7 +73,6 @@ public class HomeActivity extends Fragment {
         ll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         ll.setOrientation(LinearLayout.VERTICAL);
 
-
         sv.addView(ll);
 
         for(DataSnapshot ds : states.getChildren()) {
@@ -109,7 +95,7 @@ public class HomeActivity extends Fragment {
                 image.setLayoutParams(new android.view.ViewGroup.LayoutParams(700,700));
                 image.setMaxHeight(300);
                 image.setMaxWidth(300);
-                image.setPadding(10,10,10,0);
+                image.setPadding(10,10,5,0);
                 Picasso.with(view.getContext().getApplicationContext()).load(url).into(image);
                 mm.addView(image);
             }

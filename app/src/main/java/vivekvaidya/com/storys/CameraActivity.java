@@ -45,19 +45,31 @@ import static android.content.Context.LOCATION_SERVICE;
 
 public class CameraActivity extends Fragment {
 
+    // Sets up Firebase references
     private StorageReference mStorageRef;
     private DatabaseReference mDatabaseRef;
-    private ImageView mImageView;
-    private Button mCaptureImage;
-    private String pictureState;
-    private Button mShareImage;
-    private static final int OPEN_CAMERA = 1;
-    private static final int COMPRESS_SIZE = 100;
-    private Geocoder geocoder;
-    private LocationManager locationManager;
-    private LocationListener locationListener;
-    List<Address> addressList;
 
+    // UI elements
+    private ImageView mImageView;
+    private String mPictureState;
+    private Button mShareImage;
+
+    // Tags to avoid magic numbers
+    private static final int OPEN_CAMERA = 100;
+    private static final int COMPRESS_SIZE = 100;
+    private static final int MAX_R = 1;
+    private static final int REFRESH_TIME = 5000;
+
+    // Geolocation attributes
+    private Geocoder mGeocoder;
+    private LocationManager mLocationManager;
+    private LocationListener mLocationListener;
+    private List<Address> mAddressList;
+
+    /**
+     * Creates a new instance of a CameraActivity and returns it.
+     * @return a CameraActivity
+     */
     public static CameraActivity newInstance() {
         CameraActivity fragment = new CameraActivity();
         return fragment;
@@ -73,10 +85,12 @@ public class CameraActivity extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.camera_activity, container, false);
 
-        // Gets reference to storage location on Firebase
+        // Gets the real Firebase references
         mStorageRef = FirebaseStorage.getInstance().getReference();
         mDatabaseRef = FirebaseDatabase.getInstance().getReference("states");
-        mCaptureImage = (Button) view.findViewById(R.id.button2);
+
+        // Connects UI elements to their counterparts in code
+        Button mCaptureImage = (Button) view.findViewById(R.id.button2);
         mImageView = (ImageView) view.findViewById(R.id.imageView2);
         mShareImage = (Button) view.findViewById(R.id.button);
 
@@ -87,12 +101,11 @@ public class CameraActivity extends Fragment {
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
 
-                    // Open_Camera is the thing that generates 100
+                    // OPEN_CAMERA is the thing that generates 100
                     startActivityForResult(intent, OPEN_CAMERA);
                 }
             }
         });
-
         return view;
     }
 
@@ -106,31 +119,54 @@ public class CameraActivity extends Fragment {
             Bitmap img = (Bitmap) data.getExtras().get("data");
 
             // Calls a helper method that returns Uri of the Bitmap
-            final Uri uri = getImageUri(context, img);
-            Picasso.with(context).load(uri).fit().centerCrop()
+            final Uri imgUri = getImageUri(context, img);
+            Picasso.with(context).load(imgUri).fit().centerCrop()
                     .into(mImageView);
 
+            // Clicking on the button shares the image to Firebase Storage & Realtime Database
             mShareImage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(final View view1) {
-                    StorageReference filePath = mStorageRef.child(uri.getLastPathSegment());
-                    filePath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+
+                    // URI.getLastPathSegment() uniquely identifies each image
+                    StorageReference filePath = mStorageRef.child(imgUri.getLastPathSegment());
+                    filePath.putFile(imgUri).addOnSuccessListener
+                            (new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @SuppressWarnings("VisibleForTests")
+
+                        // onSuccess is called when the image is uploaded successfully
                         @Override
                         public void onSuccess(final UploadTask.TaskSnapshot taskSnapshot) {
-                            locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
-                            geocoder = new Geocoder(context, Locale.getDefault());
-                            locationListener = new LocationListener() {
+                            mLocationManager = (LocationManager) getActivity()
+                                    .getSystemService(LOCATION_SERVICE);
+                            mGeocoder = new Geocoder(context, Locale.getDefault());
+
+                            // Sets up a location listener that implements methods to work with
+                            // location data and update when the data changes.
+                            mLocationListener = new LocationListener() {
                                 @Override
                                 public void onLocationChanged(Location location) {
                                     try {
-                                        addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-                                        pictureState = addressList.get(0).getAdminArea();
+
+                                        // Populates mAddressList with the address returned
+                                        // by the geocoder.
+                                        mAddressList = mGeocoder.getFromLocation
+                                                (location.getLatitude(),
+                                                        location.getLongitude(), MAX_R);
+
+                                        // Gets the "AdminArea" aka State
+                                        mPictureState = mAddressList.get(0).getAdminArea();
                                         Uri pictureURL = taskSnapshot.getDownloadUrl();
-                                        mDatabaseRef.child(pictureState).child(pictureURL.getLastPathSegment()).setValue(pictureURL.toString()).addOnSuccessListener(new OnSuccessListener<Void>() {
+
+                                        // Writes the state and imgUrl to Firebase Database
+                                        mDatabaseRef.child(mPictureState).child
+                                                (pictureURL.getLastPathSegment()).setValue
+                                                (pictureURL.toString()).addOnSuccessListener
+                                                (new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void aVoid) {
-                                                Toast.makeText(view1.getContext().getApplicationContext(), "Your photo was shared!", Toast.LENGTH_LONG).show();
+                                                Toast.makeText(context, "Your photo was shared!",
+                                                        Toast.LENGTH_LONG).show();
                                             }
                                         });
                                     } catch (Exception ex) {
@@ -138,6 +174,8 @@ public class CameraActivity extends Fragment {
                                     }
                                 }
 
+                                // The following methods are unnecessary but cannot be done
+                                // away with because LocationListener requires it.
                                 @Override
                                 public void onStatusChanged(String provider, int status, Bundle extras) {
 
@@ -153,17 +191,20 @@ public class CameraActivity extends Fragment {
 
                                 }
                             };
-                            if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                                // TODO: Consider calling
-                                //    ActivityCompat#requestPermissions
-                                // here to request the missing permissions, and then overriding
-                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                //                                          int[] grantResults)
-                                // to handle the case where the user grants the permission. See the documentation
-                                // for ActivityCompat#requestPermissions for more details.
+
+                            // Checks for permissions to access location.
+                            if (ActivityCompat.checkSelfPermission(context, 
+                                    android.Manifest.permission.ACCESS_FINE_LOCATION) != 
+                                    PackageManager.PERMISSION_GRANTED && 
+                                    ActivityCompat.checkSelfPermission(context, 
+                                            android.Manifest.permission.ACCESS_COARSE_LOCATION) 
+                                            != PackageManager.PERMISSION_GRANTED) {
+                           
                                 return;
                             }
-                            locationManager.requestLocationUpdates("gps", 5000, 0, locationListener);
+                            // Updates the location every REFRESH_TIME (5000) milliseconds.
+                            mLocationManager.requestLocationUpdates("gps",
+                                    REFRESH_TIME, 0, mLocationListener);
                         }
                     });
                 }
@@ -174,9 +215,8 @@ public class CameraActivity extends Fragment {
     /**
      * Helper method that returns the Uri of a Bitmap passed in as a parameter
      * Sourced from the one and only - Stackoverflow
-     *
      * @param inContext - application context
-     * @param inImage   - image returned from the camera activity under the data Intent
+     * @param inImage - image returned from the camera activity under the data Intent
      * @return the Uri of the Bitmap.
      */
     public Uri getImageUri(Context inContext, Bitmap inImage) {
