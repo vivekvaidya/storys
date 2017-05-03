@@ -46,7 +46,7 @@ public class HomeActivity extends Fragment {
 
         // view is final because it's accessed from an inner class
         final View view = inflater.inflate(R.layout.home_activity, container, false);
-        DatabaseReference mDatabaseRef = FirebaseDatabase.getInstance().getReference("states");
+        DatabaseReference mDatabaseRef = FirebaseDatabase.getInstance().getReference();
 
         // Calls showData() when data is changed/updated on the realtime database
         mDatabaseRef.addValueEventListener(new ValueEventListener() {
@@ -73,8 +73,11 @@ public class HomeActivity extends Fragment {
      */
     public void showData(DataSnapshot dataSnapshot, View view) {
 
+        // Get a new datasnapshot containing only states.
+        DataSnapshot states = dataSnapshot.child("states");
+
         // Master linear layout that contains child elements
-        LinearLayout masterLayout = (LinearLayout) view.findViewById(R.id.container);
+        LinearLayout layout = (LinearLayout) view.findViewById(R.id.container);
 
         // ScrollView to scroll through the different states.
         ScrollView verticalScroll = new ScrollView(view.getContext().getApplicationContext());
@@ -91,7 +94,7 @@ public class HomeActivity extends Fragment {
         // Add this encapsulated layout to the verticalScrollView.
         verticalScroll.addView(encapsulateLayout);
 
-        for(DataSnapshot entireDB : dataSnapshot.getChildren()) {
+        for(DataSnapshot entireDB : states.getChildren()) {
 
             // Another linear layout to hold the horizontal scrolling components.
             LinearLayout horizontalLayout = new LinearLayout(view.getContext().getApplicationContext());
@@ -101,9 +104,11 @@ public class HomeActivity extends Fragment {
 
             // Gets the current state and places it in a textview.
             String currentState = entireDB.getKey();
-            TextView txt = new TextView(getContext().getApplicationContext());
+            TextView txt = new TextView(view.getContext().getApplicationContext());
             txt.setText(currentState + " > ");
             txt.setPadding(20, 40, 0, 0);
+            txt.setTextAppearance(getContext().getApplicationContext(),
+                    android.R.style.TextAppearance_Large);
             txt.setTextColor(Color.rgb(0,0,0));
             encapsulateLayout.addView(txt);
 
@@ -131,6 +136,6 @@ public class HomeActivity extends Fragment {
             horizontalScroll.addView(horizontalLayout);
             encapsulateLayout.addView(horizontalScroll);
         }
-        masterLayout.addView(encapsulateLayout);
+        layout.addView(verticalScroll);
     }
 }
