@@ -17,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView bottomNavigationView = (BottomNavigationView)
                 findViewById(R.id.navigation);
 
+        // Sets up the navigation between screens.
         bottomNavigationView.setOnNavigationItemSelectedListener
                 (new BottomNavigationView.OnNavigationItemSelectedListener() {
                     @Override
@@ -33,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
                                 selectedFragment = CameraActivity.newInstance();
                                 break;
                         }
+
+                        // Navigates to the selected fragment.
                         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                         transaction.replace(R.id.container, selectedFragment);
                         transaction.commit();
@@ -40,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
+        // Opens up camera activity on first run.
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.container, CameraActivity.newInstance());
         transaction.commit();

@@ -26,6 +26,10 @@ import com.squareup.picasso.Picasso;
 
 public class HomeActivity extends Fragment {
 
+    /**
+     * Sets up a new HomeActivity and returns it for use as a fragment.
+     * @return HomeActivity
+     */
     public static HomeActivity newInstance() {
         HomeActivity fragment = new HomeActivity();
         return fragment;
@@ -39,8 +43,12 @@ public class HomeActivity extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        // view is final because it's accessed from an inner class
         final View view = inflater.inflate(R.layout.home_activity, container, false);
-        DatabaseReference mDatabaseRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference mDatabaseRef = FirebaseDatabase.getInstance().getReference("states");
+
+        // Calls showData() when data is changed/updated on the realtime database
         mDatabaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -51,57 +59,78 @@ public class HomeActivity extends Fragment {
             public void onCancelled(DatabaseError databaseError) {
                 Toast.makeText(getActivity().getApplicationContext(),
                         "Trouble reading from the database.", Toast.LENGTH_LONG).show();
-
             }
         });
-
-
         return view;
     }
 
+    /**
+     * Helper method that programmatically sets up layouts and lays out elements pulled from the
+     * realtime database.
+     *
+     * @param dataSnapshot - snapshot of the database
+     * @param view - current view
+     */
     public void showData(DataSnapshot dataSnapshot, View view) {
-        DataSnapshot states = dataSnapshot.child("states");
-        LinearLayout layout = (LinearLayout) view.findViewById(R.id.container);
 
-        ScrollView sv = new ScrollView(view.getContext().getApplicationContext());
-        sv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-        LinearLayout ll = new LinearLayout(view.getContext().getApplicationContext());
-        ll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        ll.setOrientation(LinearLayout.VERTICAL);
+        // Master linear layout that contains child elements
+        LinearLayout masterLayout = (LinearLayout) view.findViewById(R.id.container);
 
-        sv.addView(ll);
+        // ScrollView to scroll through the different states.
+        ScrollView verticalScroll = new ScrollView(view.getContext().getApplicationContext());
+        verticalScroll.setLayoutParams(new LinearLayout.LayoutParams
+                (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
 
-        for(DataSnapshot ds : states.getChildren()) {
+        // Linear layout to encapsulate elements for the ScrollView
+        // (since it can only host one direct child)
+        LinearLayout encapsulateLayout = new LinearLayout(view.getContext().getApplicationContext());
+        encapsulateLayout.setLayoutParams(new LinearLayout.LayoutParams
+                (LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        encapsulateLayout.setOrientation(LinearLayout.VERTICAL);
 
-            LinearLayout mm = new LinearLayout(view.getContext().getApplicationContext());
-            mm.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            mm.setOrientation(LinearLayout.HORIZONTAL);
+        // Add this encapsulated layout to the verticalScrollView.
+        verticalScroll.addView(encapsulateLayout);
 
-            String state = ds.getKey();
-            TextView text = new TextView(getContext().getApplicationContext());
-            text.setText(state + " > ");
-            text.setPadding(20, 40, 0, 0);
-            text.setTextAppearance(getContext().getApplicationContext(), android.R.style.TextAppearance_Large);
-            text.setTextColor(Color.rgb(0,0,0));
-            ll.addView(text);
+        for(DataSnapshot entireDB : dataSnapshot.getChildren()) {
 
-            for (DataSnapshot ds1 : ds.getChildren()) {
-                String url = (String) ds1.getValue();
-                ImageView image = new ImageView(view.getContext().getApplicationContext());
-                image.setLayoutParams(new android.view.ViewGroup.LayoutParams(700,700));
-                image.setMaxHeight(300);
-                image.setMaxWidth(300);
-                image.setPadding(10,10,5,0);
-                Picasso.with(view.getContext().getApplicationContext()).load(url).into(image);
-                mm.addView(image);
+            // Another linear layout to hold the horizontal scrolling components.
+            LinearLayout horizontalLayout = new LinearLayout(view.getContext().getApplicationContext());
+            horizontalLayout.setLayoutParams(new LinearLayout.LayoutParams
+                    (LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            horizontalLayout.setOrientation(LinearLayout.HORIZONTAL);
+
+            // Gets the current state and places it in a textview.
+            String currentState = entireDB.getKey();
+            TextView txt = new TextView(getContext().getApplicationContext());
+            txt.setText(currentState + " > ");
+            txt.setPadding(20, 40, 0, 0);
+            txt.setTextColor(Color.rgb(0,0,0));
+            encapsulateLayout.addView(txt);
+
+            // Gets individual URIs, loads images and places in a horizontal layout.
+            for (DataSnapshot individualPaths : entireDB.getChildren()) {
+                String url = (String) individualPaths.getValue();
+
+                // Dynamically generates imageViews to load the pulled images into.
+                ImageView img = new ImageView(view.getContext().getApplicationContext());
+                img.setLayoutParams(new android.view.ViewGroup.LayoutParams(700,700));
+                img.setMaxHeight(300);
+                img.setMaxWidth(300);
+                img.setPadding(10,10,5,0);
+                Picasso.with(view.getContext().getApplicationContext()).load(url).into(img);
+                horizontalLayout.addView(img);
             }
 
-            HorizontalScrollView sv_1 = new HorizontalScrollView(view.getContext().getApplicationContext());
-            sv_1.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+            // Horizontal scrollView that works with the horizontal Layout to make images scroll.
+            HorizontalScrollView horizontalScroll = new HorizontalScrollView
+                    (view.getContext().getApplicationContext());
+            horizontalScroll.setLayoutParams(new LinearLayout.LayoutParams
+                    (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
 
-            sv_1.addView(mm);
-            ll.addView(sv_1);
+            // Puts all of the elements together for a great experience.
+            horizontalScroll.addView(horizontalLayout);
+            encapsulateLayout.addView(horizontalScroll);
         }
-        layout.addView(sv);
+        masterLayout.addView(encapsulateLayout);
     }
 }

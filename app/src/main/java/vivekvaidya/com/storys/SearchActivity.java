@@ -55,7 +55,7 @@ public class SearchActivity extends Fragment {
         // view is final because it's accessed from an inner class
         final View view = inflater.inflate(R.layout.search_activity, container, false);
         mDatabaseRef = FirebaseDatabase.getInstance().getReference("states");
-        mEditText = (EditText) view.findViewById(R.id.meme); //TODO pls fix
+        mEditText = (EditText) view.findViewById(R.id.enterState);
         Button mButton = (Button) view.findViewById(R.id.search);
 
         // Takes in the input from EditText onClick
@@ -87,11 +87,11 @@ public class SearchActivity extends Fragment {
     }
 
     /**
-     * Helper method that programmatically sets up masterLayouts and lays out elements pulled
+     * Helper method that programmatically sets up layouts and lays out elements pulled
      * from the realtime database.
      *
-     * @param dataSnapshot
-     * @param view
+     * @param dataSnapshot - snapshot of the database
+     * @param view - current view
      */
     public void showData(DataSnapshot dataSnapshot, View view) {
 
@@ -101,7 +101,7 @@ public class SearchActivity extends Fragment {
         }
 
         // Master linear layout that contains child elements
-        LinearLayout masterLayout = (LinearLayout) view.findViewById(R.id.kek); //TODO fix pls
+        LinearLayout masterLayout = (LinearLayout) view.findViewById(R.id.parentSearch);
 
         // HorizontalScrollView for images corresponding to each state.  
         HorizontalScrollView stateImages = new HorizontalScrollView
